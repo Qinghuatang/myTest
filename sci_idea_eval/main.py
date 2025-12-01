@@ -19,14 +19,6 @@ import os
 import sys
 from typing import Optional
 
-from .config import Config
-from .embedding_model import EmbeddingModel
-from .final_scorer import FinalScorer
-from .graph_builder import HeterogeneousGraphBuilder
-from .input_processor import InputProcessor
-from .plausibility_scorer import PlausibilityScorer
-from .validation_pipeline import ValidationPipeline
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -34,8 +26,57 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _check_dependencies():
+    """Check if required dependencies are installed."""
+    missing = []
+    try:
+        import torch
+    except ImportError:
+        missing.append("torch")
+    try:
+        import transformers
+    except ImportError:
+        missing.append("transformers")
+    try:
+        import networkx
+    except ImportError:
+        missing.append("networkx")
+    
+    if missing:
+        logger.error(f"Missing required dependencies: {', '.join(missing)}")
+        logger.error("Please install them with: pip install -r requirements.txt")
+        sys.exit(1)
+
+
+def _import_modules():
+    """Import modules after dependency check."""
+    from .config import Config
+    from .embedding_model import EmbeddingModel
+    from .final_scorer import FinalScorer
+    from .graph_builder import HeterogeneousGraphBuilder
+    from .input_processor import InputProcessor
+    from .plausibility_scorer import PlausibilityScorer
+    from .validation_pipeline import ValidationPipeline
+    return {
+        'Config': Config,
+        'EmbeddingModel': EmbeddingModel,
+        'FinalScorer': FinalScorer,
+        'HeterogeneousGraphBuilder': HeterogeneousGraphBuilder,
+        'InputProcessor': InputProcessor,
+        'PlausibilityScorer': PlausibilityScorer,
+        'ValidationPipeline': ValidationPipeline,
+    }
+
+
 def build_graph(args: argparse.Namespace) -> None:
     """Build the heterogeneous MCT graph from data."""
+    _check_dependencies()
+    modules = _import_modules()
+    
+    Config = modules['Config']
+    EmbeddingModel = modules['EmbeddingModel']
+    HeterogeneousGraphBuilder = modules['HeterogeneousGraphBuilder']
+    
     logger.info("Building heterogeneous graph...")
     
     config = Config()
@@ -74,6 +115,14 @@ def build_graph(args: argparse.Namespace) -> None:
 
 def train_link_prediction(args: argparse.Namespace) -> None:
     """Train the link prediction model."""
+    _check_dependencies()
+    modules = _import_modules()
+    
+    Config = modules['Config']
+    EmbeddingModel = modules['EmbeddingModel']
+    HeterogeneousGraphBuilder = modules['HeterogeneousGraphBuilder']
+    PlausibilityScorer = modules['PlausibilityScorer']
+    
     logger.info("Training link prediction model...")
     
     config = Config()
@@ -100,6 +149,16 @@ def train_link_prediction(args: argparse.Namespace) -> None:
 
 def evaluate_idea(args: argparse.Namespace) -> None:
     """Evaluate a single research idea."""
+    _check_dependencies()
+    modules = _import_modules()
+    
+    Config = modules['Config']
+    EmbeddingModel = modules['EmbeddingModel']
+    HeterogeneousGraphBuilder = modules['HeterogeneousGraphBuilder']
+    InputProcessor = modules['InputProcessor']
+    PlausibilityScorer = modules['PlausibilityScorer']
+    FinalScorer = modules['FinalScorer']
+    
     logger.info("Evaluating research idea...")
     
     config = Config()
@@ -167,6 +226,12 @@ def evaluate_idea(args: argparse.Namespace) -> None:
 
 def run_validation(args: argparse.Namespace) -> None:
     """Run the validation pipeline."""
+    _check_dependencies()
+    modules = _import_modules()
+    
+    Config = modules['Config']
+    ValidationPipeline = modules['ValidationPipeline']
+    
     logger.info("Running validation pipeline...")
     
     config = Config()
