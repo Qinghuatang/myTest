@@ -191,18 +191,19 @@ class NoveltyScorer:
         
         # Handle empty history
         if not history_embeddings:
-            # No prior work in this context-task - moderate novelty
-            details["d_min"] = 0.5
-            details["d_parent"] = 0.5
+            # No prior work in this context-task - use configured default
+            default_score = self.config.default_empty_history_score
+            details["d_min"] = default_score
+            details["d_parent"] = default_score
             details["empty_history"] = True
-            return 0.5, details
+            return default_score, details
         
         # Compute minimum semantic distance
         d_min = self._compute_min_distance(mechanism_embedding, history_embeddings)
         details["d_min"] = d_min
         
         # Compute parent class distance
-        d_parent = 0.5  # Default if no parent embedding
+        d_parent = self.config.default_empty_history_score  # Default if no parent embedding
         if parent_embedding is not None:
             parent_embeddings = self._get_historical_parent_embeddings(history_ids)
             if parent_embeddings:

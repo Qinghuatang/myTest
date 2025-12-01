@@ -53,18 +53,22 @@ class NoveltyConfig:
     alpha: float = 0.7  # Weight for minimum semantic distance
     isolation_threshold: float = 0.15  # Threshold for isolation penalty
     isolation_penalty: float = 0.0  # Score when isolated
+    default_empty_history_score: float = 0.5  # Score when no historical data exists
 
 
 @dataclass
 class PlausibilityConfig:
     """Configuration for plausibility scoring."""
     threshold: float = 0.3  # Threshold θ for gate function
+    unknown_entity_score: float = 0.3  # Score for unknown entities
+    max_samples_per_combination: int = 5  # Max samples for scoring each combination
 
 
 @dataclass
 class UtilityConfig:
     """Configuration for utility scoring."""
     reference_year: int = 2023  # Reference year for heat calculation
+    default_fit_score: float = 0.5  # Default fit score when embeddings unavailable
 
 
 @dataclass
@@ -72,9 +76,11 @@ class ValidationConfig:
     """Configuration for validation pipeline."""
     train_years: list = field(default_factory=lambda: [2018, 2019, 2020, 2021])
     test_year: int = 2022
+    old_papers_year: int = 2020  # Year for old negative samples
     top_percentile: float = 0.1  # Top 10% papers for testing
     num_negative_old: int = 100  # Number of old negative samples
     num_negative_random: int = 100  # Number of random negative samples
+    random_sample_subset_size: int = 500  # Subset size for random sample generation
 
 
 @dataclass

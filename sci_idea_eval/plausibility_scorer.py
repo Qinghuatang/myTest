@@ -225,18 +225,20 @@ class PlausibilityScorer:
             logger.warning("Model not trained. Call train() first.")
             return 0.5
         
+        unknown_score = self.config.unknown_entity_score if hasattr(self.config, 'unknown_entity_score') else 0.3
+        
         # Check if entities exist
         if head not in self.entity_to_id:
             logger.debug(f"Head entity not in graph: {head}")
-            return 0.3  # Low score for unknown entities
+            return unknown_score
         
         if tail not in self.entity_to_id:
             logger.debug(f"Tail entity not in graph: {tail}")
-            return 0.3
+            return unknown_score
         
         if relation not in self.relation_to_id:
             logger.debug(f"Relation not in graph: {relation}")
-            return 0.3
+            return unknown_score
         
         try:
             # Create triple tensor
@@ -258,7 +260,7 @@ class PlausibilityScorer:
             return float(prob)
         except Exception as e:
             logger.warning(f"Error predicting link score: {e}")
-            return 0.3
+            return unknown_score
     
     def _find_similar_entity(
         self, 
@@ -328,6 +330,7 @@ class PlausibilityScorer:
         # For evaluation, we use the mechanism as the central node
         # and check its compatibility with context and task
         
+        max_samples = self.config.max_samples_per_combination if hasattr(self.config, 'max_samples_per_combination') else 5
         scores = []
         
         if mech_id and context_id:
@@ -336,7 +339,7 @@ class PlausibilityScorer:
             for paper_id in self.graph._mechanism_to_papers.get(mech_id, []):
                 score = self._predict_link_score(paper_id, EDGE_TYPE_UNDER, context_id)
                 scores.append(score)
-                if len(scores) >= 5:  # Limit samples
+                if len(scores) >= max_samples:
                     break
         
         if mech_id and task_id:
@@ -344,7 +347,7 @@ class PlausibilityScorer:
             for paper_id in self.graph._mechanism_to_papers.get(mech_id, []):
                 score = self._predict_link_score(paper_id, EDGE_TYPE_SOLVES, task_id)
                 scores.append(score)
-                if len(scores) >= 5:
+                if len(scores) >= max_samples * 2:  # Allow both context and task samples
                     break
         
         if not scores:

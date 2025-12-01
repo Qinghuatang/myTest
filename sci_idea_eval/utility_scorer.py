@@ -204,7 +204,7 @@ class UtilityScorer:
                 fit = self.compute_demand_fit(mech_emb, ctx_emb)
             else:
                 # Default fit if embeddings not available
-                fit = 0.5
+                fit = self.config.default_fit_score if hasattr(self.config, 'default_fit_score') else 0.5
                 details["fit_fallback"] = True
         
         details["demand_fit"] = fit

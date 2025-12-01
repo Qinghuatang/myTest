@@ -103,12 +103,12 @@ class ValidationPipeline:
                 self.train_papers.append(paper)
             elif year == test_year and has_valid_mct(paper):
                 self.test_papers.append(paper)
-            elif year == 2020 and has_valid_mct(paper):  # Old papers for negative samples
+            elif year == self.validation_config.old_papers_year and has_valid_mct(paper):
                 self.old_papers.append(paper)
         
         logger.info(f"Train papers: {len(self.train_papers)}")
-        logger.info(f"Test papers (2022): {len(self.test_papers)}")
-        logger.info(f"Old papers (2020): {len(self.old_papers)}")
+        logger.info(f"Test papers ({test_year}): {len(self.test_papers)}")
+        logger.info(f"Old papers ({self.validation_config.old_papers_year}): {len(self.old_papers)}")
     
     def build_training_graph(self) -> None:
         """Build the graph from training data."""
@@ -186,7 +186,8 @@ class ValidationPipeline:
         all_contexts = []
         all_tasks = []
         
-        for paper in self.train_papers[:500]:  # Use subset for efficiency
+        subset_size = self.validation_config.random_sample_subset_size
+        for paper in self.train_papers[:subset_size]:
             m, c, t = extract_mct_from_paper(paper)
             all_mechanisms.extend(m)
             all_contexts.extend(c)
